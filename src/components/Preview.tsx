@@ -8,47 +8,47 @@ type Props = {
 }
 
 export default function Preview({ source, theme }: Props) {
-  if (!source.trim()) {
-    return (
-      <div className="preview-empty">
+  const empty = !source.trim()
+
+  return (
+    <div className={`preview${empty ? ' preview--empty' : ''}`}>
+      {empty ? (
         <div className="preview-empty-inner">
           <div className="preview-empty-title">Nothing to preview yet</div>
           <div className="preview-empty-sub">
             Paste or type Markdown on the left and watch it render here.
           </div>
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <article className="markdown-body">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || '')
-            if (!match) {
-              return (
-                <code className={className} {...props}>
-                  {children}
-                </code>
-              )
-            }
-            const codeStr = String(children).replace(/\n$/, '')
-            return <CodeBlock code={codeStr} lang={match[1]} theme={theme} />
-          },
-          a({ href, children, ...props }) {
-            return (
-              <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
-                {children}
-              </a>
-            )
-          },
-        }}
-      >
-        {source}
-      </ReactMarkdown>
-    </article>
+      ) : (
+        <article className="markdown-body">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              code({ className, children, ...props }) {
+                const match = /language-(\w+)/.exec(className || '')
+                if (!match) {
+                  return (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  )
+                }
+                const codeStr = String(children).replace(/\n$/, '')
+                return <CodeBlock code={codeStr} lang={match[1]} theme={theme} />
+              },
+              a({ href, children, ...props }) {
+                return (
+                  <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                    {children}
+                  </a>
+                )
+              },
+            }}
+          >
+            {source}
+          </ReactMarkdown>
+        </article>
+      )}
+    </div>
   )
 }
