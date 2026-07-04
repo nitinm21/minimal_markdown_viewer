@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import TabBar from './components/TabBar'
-import SplitPane from './components/SplitPane'
-import Editor from './components/Editor'
-import Preview from './components/Preview'
+import MarkdownEditor from './components/MarkdownEditor'
 import { loadTabs, saveTabs } from './lib/storage'
 import type { Tab } from './types'
 import './App.css'
@@ -167,16 +165,10 @@ export default function App() {
 
       <main className="main">
         {activeTab ? (
-          <SplitPane
-            storageKey="mdv:split"
-            left={
-              <Editor
-                key={activeTab.id}
-                value={activeTab.content}
-                onChange={updateActiveContent}
-              />
-            }
-            right={<Preview source={activeTab.content} theme={theme} />}
+          <MarkdownEditor
+            key={activeTab.id}
+            value={activeTab.content}
+            onChange={updateActiveContent}
           />
         ) : null}
       </main>
