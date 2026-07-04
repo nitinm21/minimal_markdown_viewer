@@ -6,6 +6,7 @@ import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
 import { Placeholder } from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 import { common, createLowlight } from 'lowlight'
+import { MarkdownPaste } from './markdown-paste'
 import type { Editor, Extensions } from '@tiptap/core'
 
 // One shared highlighter instance for all editor mounts.
@@ -32,6 +33,9 @@ export function buildExtensions(): Extensions {
       transformCopiedText: true,
       breaks: false,
     }),
+    // Route markdown-looking pastes through the markdown parser even when the
+    // clipboard also carries HTML, and strip empty-paragraph gaps otherwise.
+    MarkdownPaste,
   ]
 }
 
