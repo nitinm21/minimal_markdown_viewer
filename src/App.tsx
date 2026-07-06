@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import TabBar from './components/TabBar'
+import Sidebar from './components/Sidebar'
 import MarkdownEditor from './components/MarkdownEditor'
 import { loadTabs, saveTabs } from './lib/storage'
 import type { Tab } from './types'
@@ -53,10 +53,19 @@ function getInitialTheme(): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+function getInitialSidebar(): boolean {
+  const stored = localStorage.getItem('mdv:sidebar')
+  if (stored === 'collapsed') return true
+  if (stored === 'expanded') return false
+  // Default: collapse on narrow screens where a fixed rail costs too much room.
+  return window.matchMedia('(max-width: 720px)').matches
+}
+
 export default function App() {
   const [tabs, setTabs] = useState<Tab[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(getInitialSidebar)
   const initRef = useRef(false)
 
   // Hydrate from storage
@@ -86,6 +95,23 @@ export default function App() {
     document.documentElement.dataset.theme = theme
     localStorage.setItem('mdv:theme', theme)
   }, [theme])
+
+  // Persist sidebar collapse state
+  useEffect(() => {
+    localStorage.setItem('mdv:sidebar', sidebarCollapsed ? 'collapsed' : 'expanded')
+  }, [sidebarCollapsed])
+
+  // Cmd/Ctrl+\ toggles the sidebar (avoids Cmd+B, which Tiptap uses for bold)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        e.preventDefault()
+        setSidebarCollapsed((c) => !c)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const activeTab = useMemo(
     () => tabs.find((t) => t.id === activeId) ?? null,
@@ -143,14 +169,6 @@ export default function App() {
         <div className="brand">
           <span className="brand-name">Markdown Viewer</span>
         </div>
-        <TabBar
-          tabs={tabs}
-          activeId={activeId}
-          onSelect={setActiveId}
-          onClose={onCloseTab}
-          onNew={onNewTab}
-          onRename={onRenameTab}
-        />
         <div className="appbar-actions">
           <button
             className="iconbtn"
@@ -164,6 +182,16 @@ export default function App() {
       </header>
 
       <main className="main">
+        <Sidebar
+          tabs={tabs}
+          activeId={activeId}
+          collapsed={sidebarCollapsed}
+          onSelect={setActiveId}
+          onClose={onCloseTab}
+          onNew={onNewTab}
+          onRename={onRenameTab}
+          onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
+        />
         {activeTab ? (
           <MarkdownEditor
             key={activeTab.id}
